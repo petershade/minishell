@@ -3,4 +3,4 @@ project(minishell C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(minishell minishell.c srcs/minishell.h)
+add_executable(minishell srcs/minishell.c minishell.h)

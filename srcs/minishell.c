@@ -1,7 +1,7 @@
 //
 // Created by  Akulova Ekaterina on 05.02.2022.
 //
-#include "srcs/minishell.h"
+#include "../minishell.h"
 #include <string.h>
 
 int get_cmd()
