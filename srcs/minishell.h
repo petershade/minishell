@@ -14,6 +14,6 @@
 # include <readline/history.h>
 # define BUFFER 1024
 
-char buffer[BUFFER];
+char buff[BUFFER];
 
 #endif //MINISHELL_MINISHELL_H
