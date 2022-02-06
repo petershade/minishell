@@ -1,5 +1,3 @@
-// Получить команду ввода 
-
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -7,8 +5,10 @@
 #include<sys/wait.h>
 #include<fcntl.h>
 #define  MAX_CMD  1024
+
 char buff[MAX_CMD];
-// Размер буфера командной строки 1024 байта
+
+// 1. Получить команду
 int get_cmd()
 {
 	memset(buff, 0x00, MAX_CMD);
@@ -17,20 +17,17 @@ int get_cmd()
 	// Отображение аналогового терминала
 	
 	fgets(buff, MAX_CMD - 1, stdin);
-	//войти
 	buff[strlen(buff) - 1] = '\0';
-	// Последняя цифра \ 0
 	return 0;
+
 }
 
-// Разобрать входную команду
-
+// 2. Разбираем команду
 char **do_parse(char *buff)
 {
 	char *ptr = buff;
 	int argc = 0;
 	static char *argv[32];
-	// Сохраняем все извлеченные команды в argv, потому что они используются во всей жизненной области программы и объявлены как статические
 	
 	while('\0' != *ptr)
 	{
@@ -48,16 +45,12 @@ char **do_parse(char *buff)
 	// Удаляем пробелы и извлекаем команды
 
 	argv[argc] = NULL;
-	// Последняя цифра должна быть NULL
 	return argv;
 }
-
-// Перенаправление вывода
 
 void do_redirect(char *buff)
 {
 	int redirect_flag = 0;
-	// Запись> Количество вхождений
 	char *redirect_file = NULL;
 	char *ptr = buff;
 
@@ -67,7 +60,6 @@ void do_redirect(char *buff)
 		{
 			*ptr++ = '\0';
 			++redirect_flag;
-			// Если этот бит>, счетчик увеличивается на единицу, и этот бит переписывается как \ 0, чтобы предотвратить его интерпретацию как команду
 
 			if(*ptr == '>')
 			{
@@ -81,27 +73,69 @@ void do_redirect(char *buff)
 			}
 
 			redirect_file = ptr;
-			// После обнаружения >> следующее имя перенаправленного файла, которое будет проанализировано
-			
+
 			while(*ptr != ' ' && *ptr != '\0')
 			{
 				ptr++;
-			}				
+			}
+				
 			*ptr = '\0';
 		}
 		ptr++;
 	}
+
 	if(redirect_flag == 1)
 	{
 		int fd = open(redirect_file, O_WRONLY|O_CREAT|O_TRUNC, 0664);
 		dup2(fd, 1);
-		// Перенаправляем стандартный вывод в файл
-		// Если появляется только один>, это означает, что это перенаправление перезаписи, открыто в режиме перезаписи O_TRUNC
 	}
 	else if(redirect_flag == 2)
 	{
 		int fd = open(redirect_file, O_WRONLY|O_CREAT|O_APPEND, 0664);
 		dup2(fd, 1);
-		//> Появляется дважды, указывая, что это дополнительное перенаправление, открытое в режиме добавления O_APPEND
 	}
+}
+
+// 4. Замена программы
+int do_exec(char *buff)
+{
+	char **argv ={ NULL };
+
+	int pid = fork();
+	// Создаем дочерний процесс, заменяем программу в дочернем процессе
+	if(0 == pid)
+	{	
+		do_redirect(buff);
+		argv = do_parse(buff);
+		
+		if(NULL != argv[0])
+		{
+			execvp(argv[0], argv);
+			// Процесс замены
+		}
+		else
+		{
+			exit(-1);
+			// Если вы ввели ошибку в команде, выходим из процесса
+		}
+			
+	}	
+	else
+	{
+		waitpid(pid, NULL, 0);
+		// Ждем завершения дочернего процесса
+	}
+	
+	return 0;
+}
+
+int main(int argc, char*argv[])
+{
+	while(1)
+	{
+		if(!get_cmd())
+			do_exec(buff);
+	}
+
+	return 0;
 }
