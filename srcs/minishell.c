@@ -64,8 +64,12 @@ int what_quotes(char *str)
 
 int get_cmd(void)
 {
+    char    *str;
+
     memset(buff, 0x00, BUFFER);
     //printf("minishell$ ");
+    str = readline("minishell$> ");
+    add_history(str);
     fflush(stdout);
     // Отображение аналогового терминала
 
@@ -165,7 +169,7 @@ int do_exec(char *buff)
         do_redirect(buff);
         argv = do_parse(buff);
 
-        if(NULL != argv[0])
+        if (NULL != argv[0])
         {
             execvp(argv[0], argv);
             // Процесс замены
@@ -188,12 +192,10 @@ int do_exec(char *buff)
 
 int main(int argc, char **argv, char **envp)
 {
-    char *str;
+   // char *str;
 
     while(1)
     {
-        str = readline("minishell$> ");
-        add_history(str);
         if(!get_cmd())
             do_exec(buff);
     }
