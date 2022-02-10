@@ -4,10 +4,68 @@
 #include "../minishell.h"
 #include <string.h>
 
-int get_cmd()
+int is_znak(char c)
+{
+    if (c == '<' || c == '>')
+        return (1);
+    return (0);
+}
+
+int	is_separator(char c)
+{
+    if (c == ' ' || c == '<' || c == '>')
+        return (1);
+    return (0);
+}
+
+
+int is_pipe(char *str)
+{
+    int i;
+    int pipe;
+
+    pipe = 0;
+    while (str[i])
+    {
+        if (str[i] == '|')
+            pipe++;
+        i++;
+    }
+    return (pipe);
+}
+
+int what_quotes(char *str)
+{
+    int i;
+    int quote;
+
+    i = 0;
+    quote = 0;
+    while (str[i])
+    {
+        if (str[i] == '"')
+        {
+            if (quote == 0)
+                quote = 2;
+            else if (quote == 2)
+                quote = 0;
+        }
+        if (str[i] == '\'')
+        {
+            if (quote == 0)
+                quote = 1;
+            else if (quote == 1)
+                quote = 0;
+        }
+        i++;
+    }
+    return (quote);
+}
+
+int get_cmd(void)
 {
     memset(buff, 0x00, BUFFER);
-    printf("[lee@localhost ~]$ ");
+    //printf("minishell$ ");
     fflush(stdout);
     // Отображение аналогового терминала
 
@@ -30,9 +88,7 @@ char **do_parse(char *buff)
         {
             argv[argc++] = ptr;
             while('\0' != *ptr && ' ' != *ptr)
-            {
                 ptr++;
-            }
             *ptr = '\0';
         }
         ptr++;
@@ -63,23 +119,19 @@ void do_redirect(char *buff)
             }
 
             while(*ptr == ' ' && *ptr != '\0')
-            {
                 ptr++;
-            }
 
             redirect_file = ptr;
 
             while(*ptr != ' ' && *ptr != '\0')
-            {
                 ptr++;
-            }
 
             *ptr = '\0';
         }
         ptr++;
     }
 
-    if(redirect_flag == 1)
+    if (redirect_flag == 1)
     {
         int fd = open(redirect_file, O_WRONLY|O_CREAT|O_TRUNC, 0664);
         if (fd < 0)
@@ -104,11 +156,11 @@ void do_redirect(char *buff)
 // 4. Замена программы
 int do_exec(char *buff)
 {
-    char **argv ={ NULL };
+    char **argv = { NULL };
 
     int pid = fork();
     // Создаем дочерний процесс, заменяем программу в дочернем процессе
-    if(0 == pid)
+    if (0 == pid)
     {
         do_redirect(buff);
         argv = do_parse(buff);
@@ -134,10 +186,14 @@ int do_exec(char *buff)
     return 0;
 }
 
-int main(int argc, char*argv[])
+int main(int argc, char **argv, char **envp)
 {
+    char *str;
+
     while(1)
     {
+        str = readline("minishell$> ");
+        add_history(str);
         if(!get_cmd())
             do_exec(buff);
     }

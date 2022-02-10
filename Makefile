@@ -33,10 +33,10 @@ get_src:
 
 
 $(NAME)	: $(OBJ)
-	$(CC) $(FLAGS) -I srcs/libft/includes/ -I include/. $(OBJ) srcs/libft/libft.a -o $(NAME) $(LIB)
+	$(CC) $(FLAGS) -I srcs/libft/includes/ -I include/. $(OBJ) srcs/my_libft/libft.a -o $(NAME) $(LIB)
 
 $(NAME_B) : $(OBJ_B)
-	$(CC) $(FLAGS) -I srcs/libft/includes/ -I include/. $(OBJ_B) srcs/libft/libft.a -o $(NAME_B)
+	$(CC) $(FLAGS) -I srcs/libft/includes/ -I include/. $(OBJ_B) srcs/my_libft/libft.a -o $(NAME_B)
 
 clean :
 		@make clean -C $(LIBFT)
